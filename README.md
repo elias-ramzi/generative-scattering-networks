@@ -13,3 +13,15 @@ It is implemented using [PyTorch](http://pytorch.org/). The file GSN.py contains
 - The models and the generations are saved in the folder 'experiments/gsn_hf' inside your home folder, the name of the folder is the name of the experiment indicated as a parameter in main.py.
 
 To compute the representations you can use [PyScatWave](https://github.com/edouardoyallon/pyscatwave) and to whiten them you can use PCA from [scikit-learn](http://scikit-learn.org).
+
+
+## Datasets
+
+CelebAHQ : https://drive.google.com/open?id=1badu11NqxGf6qM3PTTooQDJvQbejgbTv
+
+
+## Requirements
+
+pip install -r requirements.txt
+
+CuPy is commented as it depend on the Cuda version installed on your computer

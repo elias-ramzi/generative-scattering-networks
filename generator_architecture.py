@@ -12,8 +12,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
+from torchvision.transforms import Compose, Resize, ToTensor
 
-from EmbeddingsImagesDataset import EmbeddingsImagesDataset
+from EmbeddingsImagesDataset import EmbeddingsTransformDataset
 
 
 class View(nn.Module):
@@ -26,7 +27,7 @@ class View(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, nb_channels_first_layer, z_dim, size_first_layer=4):
+    def __init__(self, nb_channels_first_layer, z_dim, size_first_layer=4, num_channel=3):
         super(Generator, self).__init__()
 
         nb_channels_input = nb_channels_first_layer * 16
@@ -50,7 +51,7 @@ class Generator(nn.Module):
             # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer, upsampling=False),
             # ConvBlock(nb_channels_first_layer, nb_channels_first_layer, upsampling=False),
 
-            ConvBlock(nb_channels_first_layer, nb_channels_output=3, tanh=True)
+            ConvBlock(nb_channels_first_layer, nb_channels_output=num_channel, tanh=True)
         )
 
     def forward(self, input_tensor):
@@ -101,24 +102,33 @@ def weights_init(layer):
 
 if __name__ == '__main__':
     dir_datasets = Path('~/datasets').expanduser()
-    dataset = 'celeba'
-    dataset_attribute = '64_rgb_65536_8192'
-    embedding_attribute = 'SJ4_pca_norm_1024'
+    dataset = 'celeba_hq'
+    dataset_attribute = '1024_rgb'
+    embedding_attribute = 'SJ4'
 
     dir_x_train = dir_datasets / dataset / '{0}'.format(dataset_attribute) / 'train'
-    dir_z_train = dir_datasets / dataset / '{0}_{1}'.format(dataset_attribute, embedding_attribute) / 'train'
+    dir_z_train = (dir_datasets
+                   / dataset
+                   / '{0}_{1}'.format(dataset_attribute, embedding_attribute)
+                   / 'train')
 
-    dataset = EmbeddingsImagesDataset(dir_z_train, dir_x_train)
-    fixed_dataloader = DataLoader(dataset, batch_size=128)
+    operations = [
+        Resize((128, 128)),
+        ToTensor(),
+    ]
+    transform = Compose(operations)
+
+    dataset = EmbeddingsTransformDataset(dir_z_train, dir_x_train, transform, file_format="jpg")
+    fixed_dataloader = DataLoader(dataset, batch_size=120)
     fixed_batch = next(iter(fixed_dataloader))
 
     nb_channels_first_layer = 4
     z_dim = 1024
 
-    input_tensor = fixed_batch['z'].float().cuda()
+    input_tensor = fixed_batch['z'].float()  # .cuda()
     g = Generator(nb_channels_first_layer, z_dim)
     g.apply(weights_init)
-    g.cuda()
+    # g.cuda()
     g.train()
 
     output = g.forward(input_tensor)

@@ -70,3 +70,15 @@ def get_hms(seconds):
     minutes = seconds // 60
     rseconds = seconds - 60 * minutes
     return '{}m{}s'.format(minutes, rseconds)
+
+
+class Reshape(object):
+
+    def __init__(self, *shape):
+        self.shape = shape
+
+    def __call__(self, tensor):
+        return tensor.view(self.shape)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + ", ".join(map(str, self.shape)) + ')'

@@ -1,0 +1,7 @@
+[python]
+.venv/
+.ipynb_checkpoints/
+__pycache__/
+
+[other]
+tmp/

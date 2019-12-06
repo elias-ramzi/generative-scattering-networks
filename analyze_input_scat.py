@@ -4,24 +4,29 @@
 Author: angles
 Date and time: 27/04/18 - 17:58
 """
-
-import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 from torch.utils.data import DataLoader
+from torchvision.transforms import Compose, Resize, ToTensor
 
-from EmbeddingsImagesDataset import EmbeddingsImagesDataset
+from EmbeddingsImagesDataset import EmbeddingsTransformDataset
 
-dir_datasets = os.path.expanduser('~/datasets')
-dataset = 'diracs'
-dataset_attribute = '1024'
-embedding_attribute = 'ScatJ4'
+dir_datasets = Path('~/datasets/').expanduser()
+dataset = 'celeba_hq'
+dataset_attribute = '1024_rgb'
+embedding_attribute = 'SJ4'
 
-dir_x_train = os.path.join(dir_datasets, dataset, '{0}'.format(dataset_attribute))
-dir_z_train = os.path.join(dir_datasets, dataset, '{0}_{1}'.format(dataset_attribute, embedding_attribute))
+transform = Compose([
+    Resize((128, 128)),
+    ToTensor(),
+])
 
-dataset = EmbeddingsImagesDataset(dir_z_train, dir_x_train, nb_channels=1)
+dir_x_train = dir_datasets / dataset / '{0}'.format(dataset_attribute) / 'train'
+dir_z_train = dir_datasets / dataset / '{0}_{1}'.format(dataset_attribute, embedding_attribute) / 'train'
+
+dataset = EmbeddingsTransformDataset(dir_z_train, dir_x_train, transform, file_format="jpg")
 fixed_dataloader = DataLoader(dataset, batch_size=256)
 fixed_batch = next(iter(fixed_dataloader))
 
