@@ -45,7 +45,7 @@ class EmbeddingsImagesDataset(Dataset):
 
 
 class EmbeddingsTransformDataset(Dataset):
-    def __init__(self, dir_z, dir_x, transform, nb_channels=3, file_format="png"):
+    def __init__(self, dir_z, dir_x, transform, nb_channels=3, file_format="jpg"):
         nb_file_z = get_nb_files(dir_z)
         assert nb_file_z == get_nb_files(dir_x)
         assert nb_channels in [1, 3]

@@ -27,7 +27,15 @@ class View(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, nb_channels_first_layer, z_dim, size_first_layer=4, num_channel=3):
+    def __init__(
+        self,
+        nb_channels_first_layer,
+        z_dim,
+        size_first_layer=4,
+        num_channel=3,
+        linear_bias=True,
+        conv_kernel=5,
+    ):
         super(Generator, self).__init__()
 
         nb_channels_input = nb_channels_first_layer * 16
@@ -35,23 +43,29 @@ class Generator(nn.Module):
         self.main = nn.Sequential(
             nn.Linear(in_features=z_dim,
                       out_features=size_first_layer * size_first_layer * nb_channels_input,
-                      bias=False),
+                      bias=linear_bias),
             View(-1, nb_channels_input, size_first_layer, size_first_layer),
             nn.BatchNorm2d(nb_channels_input, eps=0.001, momentum=0.9),
             nn.ReLU(inplace=True),
 
             # ConvBlock(nb_channels_input, nb_channels_first_layer * 16, upsampling=True),
-            ConvBlock(nb_channels_first_layer * 16, nb_channels_first_layer * 8, upsampling=True),
-            ConvBlock(nb_channels_first_layer * 8, nb_channels_first_layer * 4, upsampling=True),
-            ConvBlock(nb_channels_first_layer * 4, nb_channels_first_layer * 2, upsampling=True),
-            ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer, upsampling=True),
-            # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer * 2, upsampling=True),
+            ConvBlock(nb_channels_first_layer * 16, nb_channels_first_layer * 8,
+                      conv_kernel=conv_kernel,   upsampling=True),
+            ConvBlock(nb_channels_first_layer * 8, nb_channels_first_layer * 4,
+                      conv_kernel=conv_kernel, upsampling=True),
+            ConvBlock(nb_channels_first_layer * 4, nb_channels_first_layer * 2,
+                      conv_kernel=conv_kernel, upsampling=True),
+            ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer * 2,
+                      conv_kernel=conv_kernel, upsampling=True),
+            ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer,
+                      conv_kernel=conv_kernel, upsampling=True),
             # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer * 2, upsampling=False),
             # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer * 2, upsampling=False),
             # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer, upsampling=False),
             # ConvBlock(nb_channels_first_layer, nb_channels_first_layer, upsampling=False),
 
-            ConvBlock(nb_channels_first_layer, nb_channels_output=num_channel, tanh=True)
+            ConvBlock(nb_channels_first_layer, nb_channels_output=num_channel,
+                      conv_kernel=conv_kernel, tanh=True)
         )
 
     def forward(self, input_tensor):
@@ -59,22 +73,30 @@ class Generator(nn.Module):
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, nb_channels_input, nb_channels_output, upsampling=False, tanh=False):
+    def __init__(
+        self,
+        nb_channels_input,
+        nb_channels_output,
+        conv_kernel=5,
+        upsampling=False,
+        tanh=False,
+    ):
         super(ConvBlock, self).__init__()
 
         self.tanh = tanh
         self.upsampling = upsampling
 
-        filter_size = 5
-        padding = (filter_size - 1) // 2
+        # conv_kernel = 5
+        padding = (conv_kernel - 1) // 2
 
         self.pad = nn.ReflectionPad2d(padding)
-        self.conv = nn.Conv2d(nb_channels_input, nb_channels_output, filter_size, bias=False)
+        self.conv = nn.Conv2d(nb_channels_input, nb_channels_output, conv_kernel, bias=False)
         self.bn_layer = nn.BatchNorm2d(nb_channels_output, eps=0.001, momentum=0.9)
 
     def forward(self, input_tensor):
         if self.upsampling:
-            output = F.interpolate(input_tensor, scale_factor=2, mode='bilinear', align_corners=False)
+            output = F.interpolate(input_tensor, scale_factor=2,
+                                   mode='bilinear', align_corners=False)
         else:
             output = input_tensor
 
@@ -104,7 +126,7 @@ if __name__ == '__main__':
     dir_datasets = Path('~/datasets').expanduser()
     dataset = 'celeba_hq'
     dataset_attribute = '1024_rgb'
-    embedding_attribute = 'SJ4'
+    embedding_attribute = 'SJ4_PCA_200'
 
     dir_x_train = dir_datasets / dataset / '{0}'.format(dataset_attribute) / 'train'
     dir_z_train = (dir_datasets
@@ -119,17 +141,24 @@ if __name__ == '__main__':
     transform = Compose(operations)
 
     dataset = EmbeddingsTransformDataset(dir_z_train, dir_x_train, transform, file_format="jpg")
-    fixed_dataloader = DataLoader(dataset, batch_size=120)
+    fixed_dataloader = DataLoader(dataset, batch_size=30)
     fixed_batch = next(iter(fixed_dataloader))
 
-    nb_channels_first_layer = 4
-    z_dim = 1024
+    CHANNELS_LINER_LAYER = 64
+    Z_DIM = 200
+    SIZE_LINEAR_LAYER = 4
 
     input_tensor = fixed_batch['z'].float()  # .cuda()
-    g = Generator(nb_channels_first_layer, z_dim)
+    g = Generator(
+        CHANNELS_LINER_LAYER,
+        Z_DIM,
+        size_first_layer=SIZE_LINEAR_LAYER,
+        num_channel=3,
+        conv_kernel=7,
+    )
     g.apply(weights_init)
     # g.cuda()
     g.train()
-
-    output = g.forward(input_tensor)
-    save_image(output[:16].data, 'temp.png', nrow=4)
+    with torch.no_grad():
+        output = g.forward(input_tensor)
+    save_image(output[:16].data, 'tmp/temp.png', nrow=4)

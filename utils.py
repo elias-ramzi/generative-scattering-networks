@@ -82,3 +82,7 @@ class Reshape(object):
 
     def __repr__(self):
         return self.__class__.__name__ + '(' + ", ".join(map(str, self.shape)) + ')'
+
+
+def uint8_image(img):
+    return np.uint8(((img + 1) * 127.5)*255)
