@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from glob import glob
 
-# You should create the path ~/datasets
+# You should create the folder in your home ~/datasets
 # Then download https://drive.google.com/open?id=1badu11NqxGf6qM3PTTooQDJvQbejgbTv
 # Extract the pictures
 # rename the folder celeba_hq

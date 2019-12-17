@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, ToTensor, Resize
 from tqdm import tqdm
 
-from ImageDataset import ImageTransformDataset
+from datasets import ImageTransformDataset
 
 
 class ScateringTransform:

@@ -22,7 +22,9 @@ def normalize(vector):
 
 
 def get_nb_files(input_dir):
-    list_files = [file for file in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, file))]
+    list_files = [
+        file for file in os.listdir(input_dir)
+        if os.path.isfile(os.path.join(input_dir, file))]
     return len(list_files)
 
 
@@ -39,7 +41,6 @@ def create_name_experiment(parameters, attribute_experiment):
                                                   attribute_experiment)
 
     print('Name experiment: {}'.format(name_experiment))
-
     return name_experiment
 
 

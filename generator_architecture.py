@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from torchvision.transforms import Compose, Resize, ToTensor
 
-from EmbeddingsImagesDataset import EmbeddingsTransformDataset
+from datasets import EmbeddingsTransformDataset
 
 
 class View(nn.Module):

@@ -11,7 +11,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize, ToTensor
 
-from EmbeddingsImagesDataset import EmbeddingsTransformDataset
+from datasets import EmbeddingsTransformDataset
 
 dir_datasets = Path('~/datasets/').expanduser()
 dataset = 'celeba_hq'

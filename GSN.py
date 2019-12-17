@@ -10,18 +10,18 @@ import time
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 import torch
 import torch.optim as optim
-from PIL import Image
-from torch.utils.tensorboard import SummaryWriter
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid
+from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import Compose, ToTensor, Resize
 from tqdm import tqdm
 
-from EmbeddingsImagesDataset import EmbeddingsTransformDataset
 from generator_architecture import Generator, weights_init
+from datasets import EmbeddingsTransformDataset
 from utils import create_folder, AverageMeter, now, get_hms, uint8_image
 
 
@@ -54,9 +54,11 @@ class GSN:
         self.dir_x_train = dir_datasets / dataset / dataset_attribute / 'train'
         self.dir_x_test = dir_datasets / dataset / dataset_attribute / 'test'
         self.dir_z_train = (dir_datasets / dataset
-                            / '{0}_{1}'.format(dataset_attribute, embedding_attribute) / 'train')
+                            / '{0}_{1}'.format(dataset_attribute, embedding_attribute)
+                            / 'train')
         self.dir_z_test = (dir_datasets / dataset
-                           / '{0}_{1}'.format(dataset_attribute, embedding_attribute) / 'test')
+                           / '{0}_{1}'.format(dataset_attribute, embedding_attribute)
+                           / 'test')
 
         self.dir_experiment = dir_experiments / 'gsn' / name_experiment
         self.dir_models = self.dir_experiment / 'models'
@@ -137,13 +139,12 @@ class GSN:
                         optimizer.step()
                         train_l1_loss.update(loss)
                         writer_train.add_scalar('metrics/l1_loss', train_l1_loss.avg, epoch)
-                        break
 
                 g.eval()
                 with torch.no_grad():
                     test_l1_loss = AverageMeter()
-                    for idx_batch, current_batch in enumerate(tqdm(dataloader_test,
-                                                                   desc='Testing model')):
+                    for idx_batch, current_batch in\
+                            enumerate(tqdm(dataloader_test, desc='Testing model')):
                         if idx_batch == 32:
                             break
                         x = current_batch['x'].float().cuda()
@@ -151,19 +152,21 @@ class GSN:
                         g_z = g.forward(z)
                         loss = criterion(g_z, x)
                         test_l1_loss.update(loss)
-                        break
 
                     writer_test.add_scalar('metrics/l1_loss', test_l1_loss.avg, epoch)
                     images = make_grid(g_z.data[:16], nrow=4, normalize=True)
                     writer_test.add_image('generations', images, epoch)
+
+                    print(" Validation : Train Loss : {:.4f}, Test Loss : {:.4f}"
+                          .format(train_l1_loss.avg, test_l1_loss.avg))
 
                 if epoch % self.nb_epochs_to_save == 0:
                     filename = os.path.join(self.dir_models, 'epoch_{}.pth'.format(epoch))
                     torch.save(g.state_dict(), filename)
 
                 end_time = time.time()
-                print("[*] Finished epoch {} in {}".format(epoch, get_hms(end_time - start_time)))
-                break
+                print("[*] Finished epoch {} in {}"
+                      .format(epoch, get_hms(end_time - start_time)))
 
         finally:
             print('[*] Closing Writer.')
@@ -198,7 +201,9 @@ class GSN:
 
             def _compute_error(dir_z, dir_x, train_test):
                 dataset = EmbeddingsTransformDataset(dir_z, dir_x, self.transorm)
-                dataloader = DataLoader(dataset, batch_size=512, num_workers=4, pin_memory=True)
+                dataloader = DataLoader(
+                    dataset, batch_size=512, num_workers=4, pin_memory=True
+                )
 
                 error = 0
 
@@ -244,7 +249,9 @@ class GSN:
                 fixed_batch = next(iter(fixed_dataloader))
 
                 x = fixed_batch['x'][[idx_image]]
-                filename_images = os.path.join(dir_to_save, 'original.png'.format(epoch_to_load))
+                filename_images = os.path.join(
+                    dir_to_save,
+                    'original.png'.format(epoch_to_load))
                 temp = make_grid(x.data, nrow=1).cpu().numpy().transpose((1, 2, 0))
                 Image.fromarray(uint8_image(temp)).save(filename_images)
 
@@ -256,7 +263,9 @@ class GSN:
                 z = torch.from_numpy(batch_z).float().cuda()
 
                 g_z = g.forward(z)
-                filename_images = os.path.join(dir_to_save, 'modified.png'.format(epoch_to_load))
+                filename_images = os.path.join(
+                    dir_to_save,
+                    'modified.png'.format(epoch_to_load))
                 temp = make_grid(g_z.data[:16], nrow=4).cpu().numpy().transpose((1, 2, 0))
                 Image.fromarray(uint8_image(temp)).save(filename_images)
 
@@ -265,7 +274,8 @@ class GSN:
     def generate_from_model(self, epoch_to_load):
         g = self.get_generator(epoch_to_load)
 
-        dir_to_save = self.dir_experiment / 'generations_epoch{}_{}'.format(epoch_to_load, now())
+        dir_to_save = (self.dir_experiment
+                       / 'generations_epoch{}_{}'.format(epoch_to_load, now()))
         dir_to_save.mkdir()
 
         with torch.no_grad():
@@ -276,7 +286,8 @@ class GSN:
 
                 z = fixed_batch['z'].float().cuda()
                 g_z = g.forward(z)
-                filename_images = dir_to_save / 'epoch_{}_{}.png'.format(epoch_to_load, train_test)
+                filename_images = (dir_to_save
+                                   / 'epoch_{}_{}.png'.format(epoch_to_load, train_test))
                 temp = make_grid(g_z.data[:16], nrow=4).cpu().numpy().transpose((1, 2, 0))
                 Image.fromarray(uint8_image(temp)).save(filename_images)
 
@@ -305,13 +316,15 @@ class GSN:
                 z = torch.from_numpy(batch_z).float().cuda()
                 g_z = g.forward(z)
 
-                # filename_images = os.path.join(self.dir_experiment, 'path_epoch_{}_{}.png'.format(epoch, train_test))
+                # filename_images = os.path.join(self.dir_experiment, 'path_epoch_{}_{}.png'
+                # .format(epoch, train_test))
                 # temp = make_grid(g_z.data, nrow=nb_samples).cpu().numpy().transpose((1, 2, 0))
                 # Image.fromarray(np.uint8((temp + 1) * 127.5)).save(filename_images)
 
                 g_z = g_z.data.cpu().numpy().transpose((0, 2, 3, 1))
 
-                folder_to_save = dir_to_save / 'epoch_{}_{}_path'.format(epoch_to_load, train_test)
+                folder_to_save = (dir_to_save
+                                  / 'epoch_{}_{}_path'.format(epoch_to_load, train_test))
                 create_folder(folder_to_save)
 
                 for idx in range(nb_samples):
@@ -348,7 +361,8 @@ class GSN:
 
         nb_samples = 50
         batch_z = np.zeros((nb_samples, 32 * self.nb_channels_first_layer, 4, 4))
-        # batch_z = np.maximum(5*np.random.randn(nb_samples, 32 * self.nb_channels_first_layer, 4, 4), 0)
+        # batch_z = np.maximum(5*np.random.randn(
+        # nb_samples, 32 * self.nb_channels_first_layer, 4, 4), 0)
         # batch_z = 5 * np.random.randn(nb_samples, 32 * self.nb_channels_first_layer, 4, 4)
 
         for i in range(4):
