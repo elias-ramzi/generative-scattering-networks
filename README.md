@@ -24,4 +24,5 @@ CelebAHQ : https://drive.google.com/open?id=1badu11NqxGf6qM3PTTooQDJvQbejgbTv
 
 pip install -r requirements.txt
 
+scikit-cuda is commented as it needs special export to install it (CPATH and LIBRARYPATH) see here : https://devtalk.nvidia.com/default/topic/1056369/pycuda-installation-failure-on-jetson-nano/  
 CuPy is commented as it depend on the Cuda version installed on your computer

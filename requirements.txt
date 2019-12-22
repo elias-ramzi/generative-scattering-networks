@@ -9,5 +9,5 @@ torchvision==0.4.2
 tensorboard==2.1.0
 tqdm==4.40.0
 requests==2.22.0
-scikit-cuda==0.5.3
+# scikit-cuda==0.5.3
 # cupy-cuda100==6.5.0

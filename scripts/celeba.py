@@ -25,7 +25,7 @@ if __name__ == '__main__':
     dir_test = dir_attributes / 'test'
     dir_test.mkdir()
 
-    paths = glob(dir_attributes / '*')
+    paths = glob(str(dir_attributes / '*'))
     paths = sorted(paths, key=lambda pth: pth.split('/')[1].split('.')[0])
 
     for pth in paths[:int(len(paths)*TRAIN_SPLIT)]:

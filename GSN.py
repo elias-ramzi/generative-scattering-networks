@@ -120,7 +120,6 @@ class GSN:
             while True:
                 start_time = time.time()
 
-                train_l1_loss = AverageMeter()
                 g.train()
                 for _ in range(self.nb_epochs_to_save):
                     epoch += 1
@@ -137,14 +136,29 @@ class GSN:
                         loss = criterion(g_z, x)
                         loss.backward()
                         optimizer.step()
-                        train_l1_loss.update(loss)
-                        writer_train.add_scalar('metrics/l1_loss', train_l1_loss.avg, epoch)
 
                 g.eval()
                 with torch.no_grad():
+                    train_l1_loss = AverageMeter()
+                    for idx_batch, current_batch in enumerate(
+                        tqdm(dataloader_train,
+                             desc='Evaluating model on training set')
+                    ):
+                        if idx_batch == 32:
+                            break
+                        x = current_batch['x'].float().cuda()
+                        z = current_batch['z'].float().cuda()
+                        g_z = g.forward(z)
+                        loss = criterion(g_z, x)
+                        train_l1_loss.update(loss)
+
+                    writer_train.add_scalar('metrics/l1_loss', train_l1_loss.avg, epoch)
+                    images = make_grid(g_z.data[:16], nrow=4, normalize=True)
+                    writer_train.add_image('generations', images, epoch)
+
                     test_l1_loss = AverageMeter()
                     for idx_batch, current_batch in\
-                            enumerate(tqdm(dataloader_test, desc='Testing model')):
+                            enumerate(tqdm(dataloader_test, desc='Evaluating model on test set')):
                         if idx_batch == 32:
                             break
                         x = current_batch['x'].float().cuda()
@@ -202,7 +216,8 @@ class GSN:
             def _compute_error(dir_z, dir_x, train_test):
                 dataset = EmbeddingsTransformDataset(dir_z, dir_x, self.transorm)
                 dataloader = DataLoader(
-                    dataset, batch_size=512, num_workers=4, pin_memory=True
+                    dataset, batch_size=self.batch_size,
+                    num_workers=self.num_workers, pin_memory=True,
                 )
 
                 error = 0
@@ -225,7 +240,7 @@ class GSN:
         filename_model = self.dir_models / 'epoch_{}.pth'.format(epoch_to_load)
         g = self.instantiate_generator()
         g.load_state_dict(torch.load(filename_model))
-        # g.cuda()
+        g.cuda()
         g.eval()
         return g
 
