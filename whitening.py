@@ -27,12 +27,15 @@ def compute_withening(
     )
 
     if training:
-        for idx_batch, current_batch in enumerate(tqdm(dataloader, desc='Fitting the PCA')):
+        for idx_batch, current_batch in\
+                enumerate(tqdm(dataloader, desc='Fitting the PCA')):
             current_batch = current_batch.view(current_batch.shape[0], -1).numpy()
-            PCA = PCA.partial_fit(current_batch)
+            if current_batch.shape[0] >= PCA.n_components:
+                PCA = PCA.partial_fit(current_batch)
 
     dir_to_save.mkdir()
-    for idx_batch, current_batch in enumerate(tqdm(dataloader, desc='Computing Whitening')):
+    for idx_batch, current_batch in\
+            enumerate(tqdm(dataloader, desc='Computing Whitening')):
         current_batch = current_batch.view(current_batch.shape[0], -1).numpy()
         current_batch = PCA.transform(current_batch)
 
@@ -44,9 +47,11 @@ def compute_withening(
 
 
 if __name__ == '__main__':
-    N_COMPONENTS = 200
-    BATCH_SIZE = 300
-    assert BATCH_SIZE > N_COMPONENTS
+    N_COMPONENTS = 400
+    BATCH_SIZE = 512
+    assert BATCH_SIZE >= N_COMPONENTS
+
+    NUM_WORKERS = 3
 
     home_datasets = Path('~/datasets/').expanduser()
     embedding_attribute = '1024_rgb_SJ4'
@@ -61,7 +66,7 @@ if __name__ == '__main__':
         dir_dataset / 'train',
         PCA,
         batch_size=BATCH_SIZE,
-        num_workers=6,
+        num_workers=NUM_WORKERS,
         training=True,
     )
 
@@ -70,6 +75,6 @@ if __name__ == '__main__':
         dir_dataset / 'test',
         PCA,
         batch_size=BATCH_SIZE,
-        num_workers=6,
+        num_workers=NUM_WORKERS,
         training=False,
     )

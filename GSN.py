@@ -153,6 +153,8 @@ class GSN:
                         train_l1_loss.update(loss)
 
                     writer_train.add_scalar('metrics/l1_loss', train_l1_loss.avg, epoch)
+                    real_images = make_grid(x.data[:16], nrow=4, normalize=True)
+                    writer_train.add_image('real', real_images, epoch)
                     images = make_grid(g_z.data[:16], nrow=4, normalize=True)
                     writer_train.add_image('generations', images, epoch)
 
@@ -168,11 +170,13 @@ class GSN:
                         test_l1_loss.update(loss)
 
                     writer_test.add_scalar('metrics/l1_loss', test_l1_loss.avg, epoch)
+                    real_images = make_grid(x.data[:16], nrow=4, normalize=True)
+                    writer_test.add_image('real', real_images, epoch)
                     images = make_grid(g_z.data[:16], nrow=4, normalize=True)
                     writer_test.add_image('generations', images, epoch)
 
-                    print(" Validation : Train Loss : {:.4f}, Test Loss : {:.4f}"
-                          .format(train_l1_loss.avg, test_l1_loss.avg))
+                print(" Validation : Train Loss : {:.4f}, Test Loss : {:.4f}"
+                      .format(train_l1_loss.avg, test_l1_loss.avg))
 
                 if epoch % self.nb_epochs_to_save == 0:
                     filename = os.path.join(self.dir_models, 'epoch_{}.pth'.format(epoch))

@@ -86,7 +86,6 @@ class ConvBlock(nn.Module):
         self.tanh = tanh
         self.upsampling = upsampling
 
-        # conv_kernel = 5
         padding = (conv_kernel - 1) // 2
 
         self.pad = nn.ReflectionPad2d(padding)

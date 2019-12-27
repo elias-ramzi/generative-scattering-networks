@@ -19,15 +19,15 @@ parameters['nb_channels_first_layer'] = 64
 parameters['size_first_layer'] = 4
 parameters['num_channel'] = 3
 parameters['linear_bias'] = True
-parameters['conv_kernel'] = 7
+parameters['conv_kernel'] = 5
 
 parameters['num_workers'] = 7
 parameters['batch_size'] = 30
 
-parameters['name_experiment'] = create_name_experiment(parameters, 'pilot_dsencoder')
+parameters['name_experiment'] = create_name_experiment(parameters, 'dsencoder')
 
 gsn = GSN(parameters)
-gsn.train(19)
+gsn.train()
 # gsn.save_originals()
 # gsn.generate_from_model(17)
 # gsn.compute_errors(17)
