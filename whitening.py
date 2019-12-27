@@ -5,6 +5,7 @@ from sklearn.decomposition import IncrementalPCA
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from config import DATASETS_PATH
 from datasets import EmbeddingsDataset
 
 
@@ -53,7 +54,7 @@ if __name__ == '__main__':
 
     NUM_WORKERS = 3
 
-    home_datasets = Path('~/datasets/').expanduser()
+    home_datasets = Path(DATASETS_PATH).expanduser()
     embedding_attribute = '1024_rgb_SJ4'
     dir_dataset = home_datasets / 'celeba_hq' / embedding_attribute
 

@@ -20,6 +20,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import Compose, ToTensor, Resize
 from tqdm import tqdm
 
+from config import DATASETS_PATH, EXPERIMENTS_PATH
 from generator_architecture import Generator, weights_init
 from datasets import EmbeddingsTransformDataset
 from utils import create_folder, AverageMeter, now, get_hms, uint8_image
@@ -27,8 +28,8 @@ from utils import create_folder, AverageMeter, now, get_hms, uint8_image
 
 class GSN:
     def __init__(self, parameters):
-        dir_datasets = Path('~/datasets').expanduser()
-        dir_experiments = Path('~/experiments').expanduser()
+        dir_datasets = Path(DATASETS_PATH).expanduser()
+        dir_experiments = Path(EXPERIMENTS_PATH).expanduser()
 
         dataset = parameters['dataset']
         dataset_attribute = parameters['dataset_attribute']

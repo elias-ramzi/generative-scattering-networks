@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from torchvision.transforms import Compose, Resize, ToTensor
 
+from config import DATASETS_PATH
 from datasets import EmbeddingsTransformDataset
 
 
@@ -122,7 +123,7 @@ def weights_init(layer):
 
 
 if __name__ == '__main__':
-    dir_datasets = Path('~/datasets').expanduser()
+    dir_datasets = Path(DATASETS_PATH).expanduser()
     dataset = 'celeba_hq'
     dataset_attribute = '1024_rgb'
     embedding_attribute = 'SJ4_PCA_200'

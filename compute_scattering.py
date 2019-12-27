@@ -11,12 +11,13 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, ToTensor, Resize
 from tqdm import tqdm
 
+from config import DATASETS_PATH
 from datasets import ImageTransformDataset
 
 
 class ScateringTransform:
 
-    HOME_DATASET = Path('~/datasets/').expanduser()
+    HOME_DATASET = Path(DATASETS_PATH).expanduser()
 
     def __init__(
         self,

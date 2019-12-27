@@ -11,9 +11,10 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize, ToTensor
 
+from config import DATASETS_PATH
 from datasets import EmbeddingsTransformDataset
 
-dir_datasets = Path('~/datasets/').expanduser()
+dir_datasets = Path(DATASETS_PATH).expanduser()
 dataset = 'celeba_hq'
 dataset_attribute = '1024_rgb'
 embedding_attribute = 'SJ4'
