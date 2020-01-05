@@ -24,10 +24,10 @@ parameters['conv_kernel'] = 5
 parameters['num_workers'] = 7
 parameters['batch_size'] = 30
 
-parameters['name_experiment'] = create_name_experiment(parameters, 'dsencoder')
+parameters['name_experiment'] = create_name_experiment(parameters, 'dsencoder_32in')
 
 gsn = GSN(parameters)
-gsn.train()
+gsn.train(12)
 # gsn.save_originals()
 # gsn.generate_from_model(17)
 # gsn.compute_errors(17)

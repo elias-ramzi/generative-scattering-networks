@@ -69,6 +69,9 @@ class GSN:
         self.batch_size = parameters['batch_size']
         self.nb_epochs_to_save = 1
 
+        self.train_size = parameters.get('train_size', None)
+        self.test_size = parameters.get('test_size', None)
+
     def make_dirs(self):
         self.dir_experiment.mkdir(parents=True)
         self.dir_models.mkdir()
@@ -98,14 +101,18 @@ class GSN:
         g.cuda()
         g.train()
 
-        dataset_train = EmbeddingsTransformDataset(self.dir_z_train, self.dir_x_train,
-                                                   self.transorm)
-        dataloader_train = DataLoader(dataset_train, self.batch_size, shuffle=True,
-                                      num_workers=self.num_workers, pin_memory=True)
-        dataset_test = EmbeddingsTransformDataset(self.dir_z_test, self.dir_x_test,
-                                                  self.transorm)
-        dataloader_test = DataLoader(dataset_test, self.batch_size, shuffle=True,
-                                     num_workers=self.num_workers, pin_memory=True)
+        dataset_train = EmbeddingsTransformDataset(
+            self.dir_z_train, self.dir_x_train,
+            self.transorm, nb_files=self.train_size)
+        dataloader_train = DataLoader(
+            dataset_train, self.batch_size, shuffle=True,
+            num_workers=self.num_workers, pin_memory=True)
+        dataset_test = EmbeddingsTransformDataset(
+            self.dir_z_test, self.dir_x_test,
+            self.transorm, nb_files=self.test_size)
+        dataloader_test = DataLoader(
+            dataset_test, self.batch_size, shuffle=True,
+            num_workers=self.num_workers, pin_memory=True)
 
         criterion = torch.nn.L1Loss()
 
@@ -194,7 +201,9 @@ class GSN:
 
     def save_originals(self):
         def _save_originals(dir_z, dir_x, train_test):
-            dataset = EmbeddingsTransformDataset(dir_z, dir_x, self.transorm)
+            nb_files = self.train_size if train_test == 'train' else self.test_size
+            dataset = EmbeddingsTransformDataset(
+                dir_z, dir_x, self.transorm, nb_files=nb_files)
             fixed_dataloader = DataLoader(dataset, 16)
             fixed_batch = next(iter(fixed_dataloader))
 
@@ -219,7 +228,9 @@ class GSN:
             criterion = torch.nn.MSELoss()
 
             def _compute_error(dir_z, dir_x, train_test):
-                dataset = EmbeddingsTransformDataset(dir_z, dir_x, self.transorm)
+                nb_files = self.train_size if train_test == 'train' else self.test_size
+                dataset = EmbeddingsTransformDataset(
+                    dir_z, dir_x, self.transorm, nb_files=nb_files)
                 dataloader = DataLoader(
                     dataset, batch_size=self.batch_size,
                     num_workers=self.num_workers, pin_memory=True,
@@ -263,8 +274,10 @@ class GSN:
         dir_to_save.mkdir()
 
         with torch.no_grad():
-            def _generate_random(dir_z, dir_x):
-                dataset = EmbeddingsTransformDataset(dir_z, dir_x, self.transorm)
+            def _generate_random(dir_z, dir_x, train_test):
+                nb_files = self.train_size if train_test == 'train' else self.test_size
+                dataset = EmbeddingsTransformDataset(
+                    dir_z, dir_x, self.transorm, nb_files=nb_files)
                 fixed_dataloader = DataLoader(dataset, idx_image + 1, shuffle=False)
                 fixed_batch = next(iter(fixed_dataloader))
 
@@ -289,7 +302,7 @@ class GSN:
                 temp = make_grid(g_z.data[:16], nrow=4).cpu().numpy().transpose((1, 2, 0))
                 Image.fromarray(uint8_image(temp)).save(filename_images)
 
-            _generate_random(self.dir_z_train, self.dir_x_train)
+            _generate_random(self.dir_z_train, self.dir_x_train, 'train')
 
     def generate_from_model(self, epoch_to_load):
         g = self.get_generator(epoch_to_load)
@@ -300,7 +313,9 @@ class GSN:
 
         with torch.no_grad():
             def _generate_from_model(dir_z, dir_x, train_test):
-                dataset = EmbeddingsTransformDataset(dir_z, dir_x, self.transorm)
+                nb_files = self.train_size if train_test == 'train' else self.test_size
+                dataset = EmbeddingsTransformDataset(
+                    dir_z, dir_x, self.transorm, nb_files=nb_files)
                 fixed_dataloader = DataLoader(dataset, 16)
                 fixed_batch = next(iter(fixed_dataloader))
 
@@ -315,7 +330,9 @@ class GSN:
             _generate_from_model(self.dir_z_test, self.dir_x_test, 'test')
 
             def _generate_path(dir_z, dir_x, train_test):
-                dataset = EmbeddingsTransformDataset(dir_z, dir_x, self.transorm)
+                nb_files = self.train_size if train_test == 'train' else self.test_size
+                dataset = EmbeddingsTransformDataset(
+                    dir_z, dir_x, self.transorm, nb_files=nb_files)
                 fixed_dataloader = DataLoader(dataset, 2, shuffle=True)
                 fixed_batch = next(iter(fixed_dataloader))
 

@@ -6,6 +6,7 @@ Date and time: 27/04/18 - 17:58
 """
 
 import os
+from glob import glob
 from datetime import datetime
 
 import numpy as np
@@ -22,10 +23,7 @@ def normalize(vector):
 
 
 def get_nb_files(input_dir):
-    list_files = [
-        file for file in os.listdir(input_dir)
-        if os.path.isfile(os.path.join(input_dir, file))]
-    return len(list_files)
+    return len(glob(os.path.join(input_dir, '*.*')))
 
 
 def create_folder(folder):

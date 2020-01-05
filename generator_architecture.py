@@ -39,7 +39,7 @@ class Generator(nn.Module):
     ):
         super(Generator, self).__init__()
 
-        nb_channels_input = nb_channels_first_layer * 16
+        nb_channels_input = nb_channels_first_layer * 32
 
         self.main = nn.Sequential(
             nn.Linear(in_features=z_dim,
@@ -49,22 +49,16 @@ class Generator(nn.Module):
             nn.BatchNorm2d(nb_channels_input, eps=0.001, momentum=0.9),
             nn.ReLU(inplace=True),
 
-            # ConvBlock(nb_channels_input, nb_channels_first_layer * 16, upsampling=True),
-            ConvBlock(nb_channels_first_layer * 16, nb_channels_first_layer * 8,
+            ConvBlock(nb_channels_first_layer * 32, nb_channels_first_layer * 16,
                       conv_kernel=conv_kernel,   upsampling=True),
+            ConvBlock(nb_channels_first_layer * 16, nb_channels_first_layer * 8,
+                      conv_kernel=conv_kernel, upsampling=True),
             ConvBlock(nb_channels_first_layer * 8, nb_channels_first_layer * 4,
                       conv_kernel=conv_kernel, upsampling=True),
             ConvBlock(nb_channels_first_layer * 4, nb_channels_first_layer * 2,
                       conv_kernel=conv_kernel, upsampling=True),
-            ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer * 2,
-                      conv_kernel=conv_kernel, upsampling=True),
             ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer,
                       conv_kernel=conv_kernel, upsampling=True),
-            # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer * 2, upsampling=False),
-            # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer * 2, upsampling=False),
-            # ConvBlock(nb_channels_first_layer * 2, nb_channels_first_layer, upsampling=False),
-            # ConvBlock(nb_channels_first_layer, nb_channels_first_layer, upsampling=False),
-
             ConvBlock(nb_channels_first_layer, nb_channels_output=num_channel,
                       conv_kernel=conv_kernel, tanh=True)
         )
@@ -140,7 +134,8 @@ if __name__ == '__main__':
     ]
     transform = Compose(operations)
 
-    dataset = EmbeddingsTransformDataset(dir_z_train, dir_x_train, transform, file_format="jpg")
+    dataset = EmbeddingsTransformDataset(
+        dir_z_train, dir_x_train, transform, file_format="jpg")
     fixed_dataloader = DataLoader(dataset, batch_size=30)
     fixed_batch = next(iter(fixed_dataloader))
 
@@ -154,7 +149,7 @@ if __name__ == '__main__':
         Z_DIM,
         size_first_layer=SIZE_LINEAR_LAYER,
         num_channel=3,
-        conv_kernel=7,
+        conv_kernel=5,
     )
     g.apply(weights_init)
     # g.cuda()

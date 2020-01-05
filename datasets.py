@@ -106,13 +106,22 @@ class EmbeddingsImagesDataset(Dataset):
 
 
 class EmbeddingsTransformDataset(Dataset):
-    def __init__(self, dir_z, dir_x, transform, nb_channels=3, file_format="jpg"):
-        nb_file_z = get_nb_files(dir_z)
-        assert nb_file_z == get_nb_files(dir_x)
+    def __init__(
+        self, dir_z, dir_x, transform,
+        nb_channels=3,
+        file_format="jpg",
+        nb_files=None
+    ):
+        if nb_files is None:
+            nb_file_z = get_nb_files(dir_z)
+            assert nb_file_z == get_nb_files(dir_x)
+            self.nb_files = nb_file_z
+        else:
+            # useful when working on colab
+            # colab cannot read folder with too many files
+            self.nb_files = nb_files
+
         assert nb_channels in [1, 3]
-
-        self.nb_files = nb_file_z
-
         self.nb_channels = nb_channels
 
         self.dir_z = dir_z
