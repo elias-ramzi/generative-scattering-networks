@@ -19,13 +19,15 @@ if __name__ == '__main__':
     dir_datasets = Path('~/datasets/').expanduser()
     dir_celeba = dir_datasets / 'celeba_hq'
     dir_attributes = dir_celeba / '1024_rgb'
-    dir_attributes.mkdir()
+    # dir_attributes.mkdir()
     dir_train = dir_attributes / 'train'
     dir_train.mkdir()
     dir_test = dir_attributes / 'test'
     dir_test.mkdir()
 
     paths = glob(str(dir_attributes / '*'))
+    paths = [p for p in paths if os.path.isfile(p)]
+
     paths = sorted(paths, key=lambda pth: pth.split('/')[1].split('.')[0])
 
     for pth in paths[:int(len(paths)*TRAIN_SPLIT)]:
@@ -34,5 +36,5 @@ if __name__ == '__main__':
 
     ext = paths[0].split('.')[-1]
     for i, pth in enumerate(paths[int(len(paths)*TRAIN_SPLIT):]):
-        new_path = dir_train / f"{i}.{ext}"
+        new_path = dir_test / f"{i}.{ext}"
         os.rename(pth, new_path)
